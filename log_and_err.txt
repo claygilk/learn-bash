@@ -1,0 +1,2 @@
+I'm going to stdout
+I'm going to stderr
