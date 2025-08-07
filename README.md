@@ -169,10 +169,6 @@ failure!
 ```
 
 
-
-
-
-
 ## Customizing Your Shell
 
 So far we've learned some usefull commands and how to combine them in interesting ways, but what if we don't like typing that much?
@@ -219,12 +215,124 @@ In order to make this change permanent we need to learn about `.bashrc` and `.ba
 > For more see: https://linuxize.com/post/bashrc-vs-bash-profile/
 
 
+## Standalone Scripts
+
+As we have seen it is possible to string commands together using `|` or `&&` which can be useful for adhoc one-liners, but eventually you will get to a point where you list of commands is too long to work with -- or maybe you just want to save commands in a file to use later.
+
+This is where standalone bash scripts come in handy. A bash script is just a plain text file that ends in `.sh` or `.bash`. You might also see other file extensions to for other shells such as `.zsh` for zsh (Zed Shell) or you might see `.ksh` for Kourne Shell. A bash script will also almost always start with something like `#!/bin/bash`. This snippet appears on the first line of a script and it tells the shell how to interpret the file. On a Unix-like system the executlable version of bash can be found at the `/bin/bash` location. You might also see `#!/bin/sh` on systems (usually very barebones container images) where bash is not installed.
+
+> See: https://en.wikipedia.org/wiki/Shebang_%28Unix%29
+
+We already saw an example of a very simple bash script with `std.sh` above. 
+
+### Script Arguments
+
+When we move our commands from the command line to a script file, we also gain the ability to parameterize our script and pass it arguments. The following `greet.bash` is an example of a very simple script that uses command line arguments. In bash you can access the `n`th command line argument by using the built-in variable `$n` where `n` index of the arguemnt. For example `$1` is the first argument, `$2` is the second argument `$3` is the third argument and so on. Command line arguments are space separated.
+
+```bash
+#!/bin/bash
+
+echo "Hello " $1 
+
+echo "Goodbye " $2
+```
+
+> Note: You might be wondering why we start counting arguments at 1? The reason is that the 0th argument will return the name of the script itself!
+
+### Variables
+
+Like any good programming language bash allows us to store values in variables. We can use the assignment operator `=` to do so. The following script (`greet_2.bash`) is a modification of the script above, but now using variables. Keep in mind that assignment operator is space sensitive so their cannot be space on either side of the equals sign.
+
+```bash
+#!/bin/bash
+
+name=$1
+other_name=$2
+
+echo "Hello ${name}"
+echo "Goodbye ${other_name}" 
+```
+
+> Note: the `"${}"` syntax is used to format some variable within a string
+
+### Conditional Logic 
+
+Now that we know how to create, we need our script to behave differently based on the values of those variables. The following short script (`greet_3.bash`) shows how we can use `if`, `elif` and `else` to perform conditional logic.
+
+```bash
+#!/bin/bash
+
+name=$1
+time_24hr=$2
+
+if [[ $time_24hr -lt 12 ]]; then
+    echo "Good Morning ${name}!"  
+elif [[ $time_24hr -lt 17 ]]; then
+    echo "Good Afternoon ${name}!" 
+else
+    echo "Good Evening ${name}!" 
+fi
+```
+
+In bash we set the scope of an `if` block not by using brackets or indentation, but rather by using the keyword `fi` ("if" backwards) to mark the end of the block of code. The conditional to be evaluated goes between the double square brackets. Within these brackets there are various built in operators that perform some comparison. For example in this script `-lt` stand for "less then". Like was `-gt` is "greater than" and `-eq` is "equals".
+
+Here is an example of the script in action. The idea behind this script is to generate a differnt greeting for the user based on the hour of day on a 24 hour clock.
 
 
+```shell
+$ ./greet_3.bash Dave 8
+Good Morning Dave!
+$ ./greet_3.bash Dave 13
+Good Afternoon Dave!
+$ ./greet_3.bash Dave 20
+Good Evening Dave!
+```
+
+### Loops
+
+The last tool in our tool belt is loops. Bash has keywords that perorm looping that you will be familiar with in other languages. For example, you can do a C-style for-loop in bash with the following bit of code (which is also saved in `for.bash`)
+
+```bash
+for ((i = 0 ; i < 100 ; i++)); do
+  echo "$i"
+done
+```
+
+This type of looping is useful, but more often I find myself needing to loop over each line in a file. This can be achieved with a do-while loop, as shown below. You can also run this code from `while.bash`
+
+```bash
+cat longfile.txt | while read -r line; do
+  echo "$line"
+done
+```
+
+> Note: All credit goes to https://devhints.io/bash for these snippets. I reference this page all the time.
+
+### Putting it All together
+
+Given all the tools and techniques we've covered so far you should now be able to start writing your own bash scripts! I hope you find scripting with bash as fun and handy as I do.
+
+In order to review what we've learned lets look at a simple, but not trival script for organizing and sorting files. The following script (creatively named `sort.sh`) sorts all files in the given directory according to their file extension.
+
+```bash
+#!/bin/bash
+
+cd $1
+
+ls -1 | awk -F "." '{ ext = NF; print $ext}' | while read -r ext ; do
+    if [[ -d $ext ]]; then
+        echo "${ext} exists!"
+    else
+        mkdir $ext; 
+    fi
+done
 
 
-## Standalone Scripts (TODO)
+ls -p | grep -v / | grep -v "sort.sh" | while read -r file; do
 
-## Conditional Logic (TODO)
+    ext=$(echo $file | awk -F "." '{ ext = NF; print $ext}')
 
-## Loops (TODO)
+    mv $file ./$ext/$file
+
+done
+```
