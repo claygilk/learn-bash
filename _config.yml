@@ -1,3 +1,3 @@
 theme: jekyll-theme-cayman
 title: An Introduction to Bash
-description: This page is a step-by-step walk-thru of the bash programming language. It assumes zero knowledge of awk itself, but some basic knowledge of programming languages and the command line. All scripts and files used on this page can be found at the github repo for this page (link below).
+description: This page is a step-by-step walk-thru of the bash programming language. It assumes zero knowledge of bash itself, but some basic knowledge of programming languages. All scripts and files used on this page can be found at the github repo for this page (link below).
